@@ -49,6 +49,7 @@ python3 scripts/fase_b/p01_seccion1.py mutate-semantic --normalized artifacts/p0
 # 3) Campañas, fallas y triage
 python3 scripts/fase_b/p01_seccion1.py plan-campaign --budget infra/p01/fase_b/presupuesto_campanas.json --out artifacts/p01/fase_b/seccion1/plan_campanas.json
 python3 scripts/fase_b/p01_seccion1.py capture-failures --events artifacts/p01/fase_b/seccion1/harness/events.jsonl --out artifacts/p01/fase_b/seccion1/fallas
+./scripts/fase_b/ejecutar_d25_d26.sh
 python3 scripts/fase_b/p01_seccion1.py dedup-signatures --failures artifacts/p01/fase_b/seccion1/fallas/fallas.jsonl --out artifacts/p01/fase_b/seccion1/clusters.json
 python3 scripts/fase_b/p01_seccion1.py triage --clusters artifacts/p01/fase_b/seccion1/clusters.json --out artifacts/p01/fase_b/seccion1/triage_top.json
 ```

@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-03-27T14:46:02.090327Z",
+  "contexto": {
+    "fase": "Fase B",
+    "seccion": "Seccion 1 (D19-D34)",
+    "tramo": "D25-D26"
+  },
+  "d25": {
+    "plan": {
+      "total_campaigns": 2,
+      "budget_ok": 2,
+      "scheduler_ok": 2,
+      "budget_ok_pct": 100.0,
+      "scheduler_ok_pct": 100.0,
+      "total_max_cases": 1300,
+      "total_max_minutes": 150,
+      "scheduler_global": {
+        "timezone": "America/Santiago",
+        "execution_window": "06:00-23:00",
+        "max_parallel_runs": 2,
+        "artifact_retention_days": 30
+      }
+    },
+    "criterios_validacion": {
+      "campaigns_min": 2,
+      "scheduler_ok_pct_min": 100.0,
+      "budget_ok_pct_min": 100.0
+    },
+    "estado": {
+      "scheduler_definido": true,
+      "presupuesto_por_campana_definido": true
+    }
+  },
+  "d26": {
+    "captura": {
+      "contexts": 2,
+      "contexts_with_runs": 2,
+      "total_events": 144,
+      "total_failures": 72,
+      "runs_detected": 2,
+      "artifact_files_total": 6,
+      "by_context": {
+        "estructural": {
+          "total_events": 72,
+          "total_failures": 48,
+          "runs_detected": 1,
+          "has_bundle": true
+        },
+        "semantico": {
+          "total_events": 72,
+          "total_failures": 24,
+          "runs_detected": 1,
+          "has_bundle": true
+        }
+      }
+    },
+    "criterios_validacion": {
+      "contexts_min": 2,
+      "total_failures_min": 1,
+      "contexts_with_runs_equals_contexts": true
+    },
+    "estado": {
+      "captura_automatica_integrada": true,
+      "artefactos_por_corrida_guardados": true
+    }
+  },
+  "status": {
+    "d25_cumplido": true,
+    "d26_cumplido": true,
+    "d25_d26_cumplido": true
+  }
+}

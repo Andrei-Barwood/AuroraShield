@@ -174,6 +174,13 @@ def deep_clone_fixture(data: dict[str, Any]) -> dict[str, Any]:
     return json.loads(json.dumps(data, ensure_ascii=False))
 
 
+def safe_file_token(v: str) -> str:
+    raw = str(v).strip()
+    sanitized = "".join(ch if (ch.isalnum() or ch in {"-", "_"}) else "_" for ch in raw)
+    sanitized = sanitized.strip("_")
+    return sanitized or "run_unknown"
+
+
 def _template_pack_mensajeria() -> list[dict[str, Any]]:
     return [
         {
@@ -744,25 +751,114 @@ def cmd_plan_campaign(budget_json: Path, out_plan: Path) -> int:
         budget = json.loads(budget_json.read_text(encoding="utf-8"))
     else:
         budget = {
-            "campana_1": {"max_cases": 500, "max_minutes": 60},
-            "campana_2": {"max_cases": 800, "max_minutes": 90},
+            "campana_1": {
+                "max_cases": 500,
+                "max_minutes": 60,
+                "focus": "discovery_inicial",
+                "cadence_minutes": 120,
+                "max_runs_daily": 2,
+                "priority": "P1",
+            },
+            "campana_2": {
+                "max_cases": 800,
+                "max_minutes": 90,
+                "focus": "validacion_clusters_nuevos",
+                "cadence_minutes": 180,
+                "max_runs_daily": 2,
+                "priority": "P1",
+            },
+            "global": {
+                "timezone": "America/Santiago",
+                "execution_window": "06:00-23:00",
+                "max_parallel_runs": 2,
+                "artifact_retention_days": 30,
+            },
         }
+
+    global_cfg = budget.get("global", {}) if isinstance(budget, dict) else {}
+    campaign_keys = sorted(k for k, v in budget.items() if k.startswith("campana_") and isinstance(v, dict))
+
+    if not campaign_keys:
+        campaign_keys = ["campana_1", "campana_2"]
+        budget = {
+            "campana_1": {"max_cases": 500, "max_minutes": 60, "focus": "discovery_inicial"},
+            "campana_2": {"max_cases": 800, "max_minutes": 90, "focus": "validacion_clusters_nuevos"},
+        }
+
+    campaigns = []
+    total_cases = 0
+    total_minutes = 0
+
+    for idx, key in enumerate(campaign_keys, 1):
+        conf = dict(budget.get(key, {}))
+        max_cases = int(conf.get("max_cases", 500))
+        max_minutes = int(conf.get("max_minutes", 60))
+        cadence_minutes = int(conf.get("cadence_minutes", conf.get("interval_minutes", 120)))
+        max_runs_daily = int(conf.get("max_runs_daily", 2))
+        priority = str(conf.get("priority", "P1"))
+        focus = str(conf.get("focus", f"campana_{idx}"))
+
+        total_cases += max_cases
+        total_minutes += max_minutes
+
+        campaigns.append(
+            {
+                "id": f"long_{idx}",
+                "source_key": key,
+                "objetivo": focus,
+                "prioridad": priority,
+                "presupuesto": {
+                    "max_cases": max_cases,
+                    "max_minutes": max_minutes,
+                    "focus": focus,
+                },
+                "scheduler": {
+                    "cadence_minutes": cadence_minutes,
+                    "max_runs_daily": max_runs_daily,
+                    "jitter_seconds": int(conf.get("jitter_seconds", 30)),
+                    "retry_on_failure": bool(conf.get("retry_on_failure", True)),
+                },
+                "pipeline": [
+                    "harness",
+                    "capture_failures",
+                    "dedup_signatures",
+                    "triage",
+                ],
+                "artifacts_required": [
+                    "events.jsonl",
+                    "failures.jsonl",
+                    "fallas_resumen.json",
+                    "artefactos_corrida.json",
+                ],
+            }
+        )
 
     plan = {
         "generated_at": utc_now(),
-        "campaigns": [
-            {
-                "id": "long_1",
-                "objetivo": "discovery inicial",
-                "presupuesto": budget.get("campana_1", {}),
-            },
-            {
-                "id": "long_2",
-                "objetivo": "validacion de clusters nuevos",
-                "presupuesto": budget.get("campana_2", {}),
-            },
-        ],
+        "source_budget": str(budget_json.as_posix()),
+        "scheduler_global": {
+            "timezone": str(global_cfg.get("timezone", "America/Santiago")),
+            "execution_window": str(global_cfg.get("execution_window", "06:00-23:00")),
+            "max_parallel_runs": int(global_cfg.get("max_parallel_runs", 2)),
+            "artifact_retention_days": int(global_cfg.get("artifact_retention_days", 30)),
+        },
+        "pipeline_default": {
+            "stages": ["harness", "capture_failures", "dedup_signatures", "triage"],
+            "guardrails": [
+                "defensive_by_design",
+                "sin_payloads_ofensivos",
+                "solo_fixtures_sinteticos",
+            ],
+            "artifacts_min_per_run": 4,
+        },
+        "campaigns": campaigns,
+        "summary": {
+            "campaigns_total": len(campaigns),
+            "total_max_cases": total_cases,
+            "total_max_minutes": total_minutes,
+        },
     }
+
     write_json(out_plan, plan)
     print(f"OK: plan de campañas creado en {out_plan}")
     return 0
@@ -791,15 +887,95 @@ def cmd_capture_failures(events_jsonl: Path, out_dir: Path) -> int:
     failures = [e for e in events if e.get("action") == "reject" or e.get("severity") in {"HIGH", "CRITICAL"}]
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    _write_jsonl(out_dir / "fallas.jsonl", failures)
+    all_failures_path = out_dir / "fallas.jsonl"
+    _write_jsonl(all_failures_path, failures)
 
-    by_reason = defaultdict(int)
+    by_reason: dict[str, int] = defaultdict(int)
+    by_severity: dict[str, int] = defaultdict(int)
+    by_run: dict[str, list[dict[str, Any]]] = defaultdict(list)
+
     for e in failures:
-        by_reason[e.get("reason_code", "UNKNOWN")] += 1
+        reason = str(e.get("reason_code", "UNKNOWN"))
+        severity = str(e.get("severity", "UNKNOWN"))
+        run_id = str(e.get("run_id", "run_unknown"))
+
+        by_reason[reason] += 1
+        by_severity[severity] += 1
+        by_run[run_id].append(e)
+
+    runs_root = out_dir / "runs"
+    runs_root.mkdir(parents=True, exist_ok=True)
+    runs_artifacts = []
+
+    for run_id in sorted(by_run.keys()):
+        safe_id = safe_file_token(run_id)
+        run_rows = by_run[run_id]
+        run_dir = runs_root / safe_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        run_fallas = run_dir / "fallas.jsonl"
+        run_resumen = run_dir / "resumen.json"
+
+        _write_jsonl(run_fallas, run_rows)
+
+        run_by_reason: dict[str, int] = defaultdict(int)
+        run_by_severity: dict[str, int] = defaultdict(int)
+        for r in run_rows:
+            run_by_reason[str(r.get("reason_code", "UNKNOWN"))] += 1
+            run_by_severity[str(r.get("severity", "UNKNOWN"))] += 1
+
+        write_json(
+            run_resumen,
+            {
+                "run_id": run_id,
+                "safe_id": safe_id,
+                "total_failures": len(run_rows),
+                "by_reason": dict(sorted(run_by_reason.items())),
+                "by_severity": dict(sorted(run_by_severity.items())),
+                "artifacts": {
+                    "fallas": str(run_fallas.as_posix()),
+                    "resumen": str(run_resumen.as_posix()),
+                },
+            },
+        )
+
+        runs_artifacts.append(
+            {
+                "run_id": run_id,
+                "safe_id": safe_id,
+                "total_failures": len(run_rows),
+                "artifacts": {
+                    "fallas": str(run_fallas.as_posix()),
+                    "resumen": str(run_resumen.as_posix()),
+                },
+            }
+        )
+
+    artefactos_corrida_path = out_dir / "artefactos_corrida.json"
+    write_json(
+        artefactos_corrida_path,
+        {
+            "generated_at": utc_now(),
+            "source_events": str(events_jsonl.as_posix()),
+            "total_runs_detected": len(by_run),
+            "runs": runs_artifacts,
+        },
+    )
 
     write_json(
         out_dir / "fallas_resumen.json",
-        {"total_events": len(events), "total_failures": len(failures), "by_reason": dict(sorted(by_reason.items()))},
+        {
+            "total_events": len(events),
+            "total_failures": len(failures),
+            "by_reason": dict(sorted(by_reason.items())),
+            "by_severity": dict(sorted(by_severity.items())),
+            "by_run_failures": dict(sorted((k, len(v)) for k, v in by_run.items())),
+            "artifacts_generated": {
+                "fallas": str(all_failures_path.as_posix()),
+                "artefactos_corrida": str(artefactos_corrida_path.as_posix()),
+                "runs_root": str(runs_root.as_posix()),
+            },
+        },
     )
     print(f"OK: captura de fallas en {out_dir}")
     return 0

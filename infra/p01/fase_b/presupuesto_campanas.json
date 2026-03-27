@@ -2,11 +2,27 @@
   "campana_1": {
     "max_cases": 500,
     "max_minutes": 60,
-    "focus": "discovery_inicial"
+    "focus": "discovery_inicial",
+    "cadence_minutes": 120,
+    "max_runs_daily": 2,
+    "priority": "P1",
+    "jitter_seconds": 30,
+    "retry_on_failure": true
   },
   "campana_2": {
     "max_cases": 800,
     "max_minutes": 90,
-    "focus": "validacion_clusters_nuevos"
+    "focus": "validacion_clusters_nuevos",
+    "cadence_minutes": 180,
+    "max_runs_daily": 2,
+    "priority": "P1",
+    "jitter_seconds": 45,
+    "retry_on_failure": true
+  },
+  "global": {
+    "timezone": "America/Santiago",
+    "execution_window": "06:00-23:00",
+    "max_parallel_runs": 2,
+    "artifact_retention_days": 30
   }
 }

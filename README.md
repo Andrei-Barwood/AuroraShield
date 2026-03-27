@@ -7,7 +7,7 @@ Repositorio de trabajo `defensive-by-design` orientado al ecosistema Apple.
 - Nombre del proyecto: `AuroraShield`
 - Proyecto activo: `P01 - No-click network attack (mensajería) hasta user space y kernel`
 - Estado de fase: `Fase A cerrada` / `Fase B en ejecución`
-- Sección activa de Fase B: `Sección 1 (D19-D34) con D19 a D24 completados`
+- Sección activa de Fase B: `Sección 1 (D19-D34) con D19 a D26 completados`
 - Baseline de referencia: `baseline-20260327T135640Z`
 
 ## Objetivo del repositorio
@@ -37,6 +37,7 @@ Construir mitigaciones y modelos de prevención reproducibles sin publicar mater
 - `docs/p01/fase_b/d19_d20_reporte.md`: resultados ejecutados de D19 y D20.
 - `docs/p01/fase_b/d21_d22_reporte.md`: resultados ejecutados de D21 y D22.
 - `docs/p01/fase_b/d23_d24_reporte.md`: resultados ejecutados de D23 y D24.
+- `docs/p01/fase_b/d25_d26_reporte.md`: resultados ejecutados de D25 y D26.
 - `infra/p01/matriz_multiversion.csv`: baseline multi-versión.
 - `infra/p01/matriz_compatibilidad.csv`: baseline de compatibilidad de fixtures.
 - `infra/p01/formato_log_unificado.json`: contrato de telemetría/log unificado.
@@ -44,6 +45,7 @@ Construir mitigaciones y modelos de prevención reproducibles sin publicar mater
 - `infra/p01/fase_b/objetivos_metricas_d20.json`: objetivos cuantitativos definidos en D20.
 - `infra/p01/fase_b/metricas_d21_d22.json`: métricas consolidadas de D21-D22.
 - `infra/p01/fase_b/metricas_d23_d24.json`: métricas consolidadas de D23-D24.
+- `infra/p01/fase_b/metricas_d25_d26.json`: métricas consolidadas de D25-D26.
 - `fixtures/p01/`: fixtures sintéticos base y por escenario.
 - `scripts/bootstrap_p01_entorno.sh`: bootstrap idempotente del entorno aislado.
 - `scripts/p01_replay_deterministico.py`: replay determinístico de fixtures.
@@ -56,6 +58,8 @@ Construir mitigaciones y modelos de prevención reproducibles sin publicar mater
 - `scripts/fase_b/ejecutar_d21_d22.sh`: ejecución integrada de D21-D22 (seed + normalización).
 - `scripts/fase_b/ejecutar_d23_d24.sh`: ejecución integrada de D23-D24 (mutación + validación).
 - `scripts/fase_b/validar_mutaciones_d23_d24.py`: verificación de calidad/utilidad de mutaciones D23-D24.
+- `scripts/fase_b/ejecutar_d25_d26.sh`: ejecución integrada de D25-D26 (scheduler + captura automática de fallas).
+- `scripts/fase_b/validar_d25_d26.py`: validación de cierre para D25-D26.
 - `docs/p01/fase_a/scorecard_semanal_template.md`: plantilla semanal para semáforos y decisiones.
 - `metrics/p01/runs_template.csv`: plantilla CSV para registrar corridas y cálculo de KPIs.
 - `metrics/p01/runs.csv`: registro real de corridas baseline.
