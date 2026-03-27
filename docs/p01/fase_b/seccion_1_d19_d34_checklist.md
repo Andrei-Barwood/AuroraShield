@@ -12,10 +12,12 @@
 - [x] D20 completado (medición de cobertura base + objetivos definidos).
 - [x] D21 completado (corpus semilla inicial + clasificación por tipo).
 - [x] D22 completado (normalización + deduplicación de bajo valor).
+- [x] D23 completado (mutadores estructurales + validación de mutaciones válidas).
+- [x] D24 completado (mutadores semánticos + validación de mutaciones inválidas útiles).
 
 ## Ejecución planificada
 
-- [ ] D19-D24 ejecutados con artefactos.
+- [x] D19-D24 ejecutados con artefactos.
 - [ ] D25-D29 ejecutados con artefactos.
 - [ ] D30 campaña larga #1 completada.
 - [ ] D31-D32 triage e hipótesis preliminares completados.

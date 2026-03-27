@@ -44,6 +44,7 @@ python3 scripts/fase_b/p01_seccion1.py normalize-corpus --corpus artifacts/p01/f
 ./scripts/fase_b/ejecutar_d21_d22.sh
 python3 scripts/fase_b/p01_seccion1.py mutate-struct --normalized artifacts/p01/fase_b/seccion1/corpus --out artifacts/p01/fase_b/seccion1/mutations
 python3 scripts/fase_b/p01_seccion1.py mutate-semantic --normalized artifacts/p01/fase_b/seccion1/corpus --out artifacts/p01/fase_b/seccion1/mutations
+./scripts/fase_b/ejecutar_d23_d24.sh
 
 # 3) Campañas, fallas y triage
 python3 scripts/fase_b/p01_seccion1.py plan-campaign --budget infra/p01/fase_b/presupuesto_campanas.json --out artifacts/p01/fase_b/seccion1/plan_campanas.json

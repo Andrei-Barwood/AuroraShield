@@ -1,0 +1,105 @@
+{
+  "generated_at": "2026-03-27T14:31:18.678045Z",
+  "contexto": {
+    "fase": "Fase B",
+    "seccion": "Seccion 1 (D19-D34)",
+    "tramo": "D23-D24"
+  },
+  "d23": {
+    "manifest": {
+      "total": 72,
+      "parseable": 72,
+      "parseable_pct": 100.0,
+      "with_mutation_tag": 72,
+      "with_mutation_tag_pct": 100.0,
+      "with_required_base": 72,
+      "with_required_base_pct": 100.0,
+      "mutations_by_type": {
+        "oversized_subject": 12,
+        "payload_array_amplification": 12,
+        "payload_as_string": 12,
+        "payload_null": 12,
+        "remove_message_type": 12,
+        "remove_payload": 12
+      },
+      "expected_behavior_distribution": {
+        "degrade": 24,
+        "reject": 48
+      },
+      "samples_invalid": []
+    },
+    "harness": {
+      "run_id": "d23-struct",
+      "fixtures_total": 72,
+      "accepts": 0,
+      "degrades": 24,
+      "rejects": 48,
+      "failures_total": 48,
+      "coverage_base_pct": 87.5,
+      "reject_rate_pct": 66.67,
+      "non_accept_rate_pct": 100.0
+    },
+    "criterios_validacion": {
+      "parseable_pct_min": 99.0,
+      "mutation_tag_pct_min": 99.0,
+      "reject_rate_pct_min": 50.0
+    },
+    "estado": {
+      "mutaciones_estructurales_validas": true
+    }
+  },
+  "d24": {
+    "manifest": {
+      "total": 72,
+      "parseable": 72,
+      "parseable_pct": 100.0,
+      "with_mutation_tag": 72,
+      "with_mutation_tag_pct": 100.0,
+      "with_required_base": 72,
+      "with_required_base_pct": 100.0,
+      "mutations_by_type": {
+        "invalid_expected_behavior": 12,
+        "semantic_enum_out_of_profile": 12,
+        "semantic_locale_out_of_profile": 12,
+        "semantic_message_type_out_of_contract": 12,
+        "semantic_timestamp_far_future": 12,
+        "unsupported_schema": 12
+      },
+      "expected_behavior_distribution": {
+        "degrade": 48,
+        "reject": 24
+      },
+      "samples_invalid": []
+    },
+    "harness": {
+      "run_id": "d24-semantic",
+      "fixtures_total": 72,
+      "accepts": 0,
+      "degrades": 48,
+      "rejects": 24,
+      "failures_total": 24,
+      "coverage_base_pct": 100.0,
+      "reject_rate_pct": 33.33,
+      "non_accept_rate_pct": 100.0
+    },
+    "criterios_validacion": {
+      "parseable_pct_min": 99.0,
+      "non_accept_rate_pct_min": 85.0,
+      "failures_total_min": 1
+    },
+    "estado": {
+      "mutaciones_semanticas_invalidas_utiles": true
+    }
+  },
+  "objetivo_d24": {
+    "entrypoint_coverage_base_pct_min": 60.0,
+    "coverage_gate_cumplido": true,
+    "coverage_structural_pct": 87.5,
+    "coverage_semantico_pct": 100.0
+  },
+  "status": {
+    "d23_cumplido": true,
+    "d24_cumplido": true,
+    "d23_d24_cumplido": true
+  }
+}

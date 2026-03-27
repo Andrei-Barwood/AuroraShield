@@ -170,6 +170,10 @@ def low_value_signature(data: dict[str, Any]) -> str:
     return stable_hash(basis)
 
 
+def deep_clone_fixture(data: dict[str, Any]) -> dict[str, Any]:
+    return json.loads(json.dumps(data, ensure_ascii=False))
+
+
 def _template_pack_mensajeria() -> list[dict[str, Any]]:
     return [
         {
@@ -581,25 +585,51 @@ def cmd_normalize_corpus(corpus_dir: Path, out_dir: Path) -> int:
 def _mutate_structural(data: dict[str, Any]) -> list[dict[str, Any]]:
     out = []
 
-    a = dict(data)
+    a = deep_clone_fixture(data)
     a.pop("payload", None)
     a["_mutation"] = "remove_payload"
+    a["_mutation_class"] = "estructural"
     a["expected_behavior"] = "rechazar"
     out.append(a)
 
-    b = dict(data)
+    b = deep_clone_fixture(data)
     b["payload"] = "payload_invalido"
     b["_mutation"] = "payload_as_string"
+    b["_mutation_class"] = "estructural"
     b["expected_behavior"] = "rechazar"
     out.append(b)
 
-    c = dict(data)
-    payload = dict(c.get("payload", {})) if isinstance(c.get("payload"), dict) else {}
-    payload["subject"] = "X" * 512
-    c["payload"] = payload
-    c["_mutation"] = "oversized_subject"
-    c["expected_behavior"] = "degradar"
+    c = deep_clone_fixture(data)
+    c["payload"] = None
+    c["_mutation"] = "payload_null"
+    c["_mutation_class"] = "estructural"
+    c["expected_behavior"] = "rechazar"
     out.append(c)
+
+    d = deep_clone_fixture(data)
+    d.pop("message_type", None)
+    d["_mutation"] = "remove_message_type"
+    d["_mutation_class"] = "estructural"
+    d["expected_behavior"] = "rechazar"
+    out.append(d)
+
+    e = deep_clone_fixture(data)
+    payload = dict(e.get("payload", {})) if isinstance(e.get("payload"), dict) else {}
+    payload["subject"] = "X" * 512
+    e["payload"] = payload
+    e["_mutation"] = "oversized_subject"
+    e["_mutation_class"] = "estructural"
+    e["expected_behavior"] = "degradar"
+    out.append(e)
+
+    f = deep_clone_fixture(data)
+    payload_f = dict(f.get("payload", {})) if isinstance(f.get("payload"), dict) else {}
+    payload_f["items"] = ["BULK"] * 4096
+    f["payload"] = payload_f
+    f["_mutation"] = "payload_array_amplification"
+    f["_mutation_class"] = "estructural"
+    f["expected_behavior"] = "degradar"
+    out.append(f)
 
     return out
 
@@ -607,24 +637,52 @@ def _mutate_structural(data: dict[str, Any]) -> list[dict[str, Any]]:
 def _mutate_semantic(data: dict[str, Any]) -> list[dict[str, Any]]:
     out = []
 
-    a = dict(data)
+    a = deep_clone_fixture(data)
     a["schema_version"] = "unsupported_v9"
     a["_mutation"] = "unsupported_schema"
+    a["_mutation_class"] = "semantico"
     a["expected_behavior"] = "rechazar"
     out.append(a)
 
-    b = dict(data)
+    b = deep_clone_fixture(data)
     b["expected_behavior"] = "accion_invalida"
     b["_mutation"] = "invalid_expected_behavior"
+    b["_mutation_class"] = "semantico"
     out.append(b)
 
-    c = dict(data)
+    c = deep_clone_fixture(data)
     payload = dict(c.get("payload", {})) if isinstance(c.get("payload"), dict) else {}
     payload["locale"] = "zz-ZZ"
     c["payload"] = payload
     c["_mutation"] = "semantic_locale_out_of_profile"
+    c["_mutation_class"] = "semantico"
     c["expected_behavior"] = "degradar"
     out.append(c)
+
+    d = deep_clone_fixture(data)
+    d["message_type"] = "control_no_permitido"
+    d["_mutation"] = "semantic_message_type_out_of_contract"
+    d["_mutation_class"] = "semantico"
+    d["expected_behavior"] = "rechazar"
+    out.append(d)
+
+    e = deep_clone_fixture(data)
+    payload_e = dict(e.get("payload", {})) if isinstance(e.get("payload"), dict) else {}
+    payload_e["timestamp"] = "2099-12-31T23:59:59Z"
+    e["payload"] = payload_e
+    e["_mutation"] = "semantic_timestamp_far_future"
+    e["_mutation_class"] = "semantico"
+    e["expected_behavior"] = "degradar"
+    out.append(e)
+
+    f = deep_clone_fixture(data)
+    payload_f = dict(f.get("payload", {})) if isinstance(f.get("payload"), dict) else {}
+    payload_f["risk_label"] = "unknown-critical"
+    f["payload"] = payload_f
+    f["_mutation"] = "semantic_enum_out_of_profile"
+    f["_mutation_class"] = "semantico"
+    f["expected_behavior"] = "degradar"
+    out.append(f)
 
     return out
 
@@ -638,12 +696,16 @@ def _generate_mutations(normalized_dir: Path, out_dir: Path, mode: str) -> int:
     mut_root = out_dir / mode
     mut_root.mkdir(parents=True, exist_ok=True)
     manifest = []
+    by_mutation: dict[str, int] = defaultdict(int)
+    by_expected: dict[str, int] = defaultdict(int)
 
     for p in iter_json_files(src):
         data = json.loads(p.read_text(encoding="utf-8"))
         muts = _mutate_structural(data) if mode == "estructural" else _mutate_semantic(data)
         for idx, m in enumerate(muts, 1):
             fid = str(m.get("fixture_id", p.stem))
+            mutation_name = str(m.get("_mutation", "unknown"))
+            expected_norm = normalize_behavior(m.get("expected_behavior", "degrade"))
             out_name = f"{fid}__{mode}__{idx}.json"
             dst = mut_root / p.parent.name / out_name
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -653,11 +715,26 @@ def _generate_mutations(normalized_dir: Path, out_dir: Path, mode: str) -> int:
                     "source": str(p.as_posix()),
                     "target": str(dst.as_posix()),
                     "mode": mode,
-                    "mutation": m.get("_mutation", "unknown"),
+                    "mutation": mutation_name,
+                    "mutation_class": str(m.get("_mutation_class", mode)),
+                    "expected_behavior": expected_norm,
                 }
             )
+            by_mutation[mutation_name] += 1
+            by_expected[expected_norm] += 1
 
-    write_json(out_dir / f"manifest_{mode}.json", {"count": len(manifest), "items": manifest})
+    write_json(
+        out_dir / f"manifest_{mode}.json",
+        {
+            "count": len(manifest),
+            "mode": mode,
+            "items": manifest,
+            "resumen": {
+                "mutations_by_type": dict(sorted(by_mutation.items())),
+                "expected_behavior_distribution": dict(sorted(by_expected.items())),
+            },
+        },
+    )
     print(f"OK: mutaciones {mode} generadas en {mut_root}")
     return 0
 
