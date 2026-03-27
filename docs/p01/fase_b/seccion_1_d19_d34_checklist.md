@@ -10,6 +10,8 @@
 
 - [x] D19 completado (harness inicial + ejecución batch).
 - [x] D20 completado (medición de cobertura base + objetivos definidos).
+- [x] D21 completado (corpus semilla inicial + clasificación por tipo).
+- [x] D22 completado (normalización + deduplicación de bajo valor).
 
 ## Ejecución planificada
 

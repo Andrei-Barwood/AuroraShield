@@ -26,6 +26,7 @@ from typing import Any
 
 ENTRYPOINTS_REFERENCIA = 8
 REQUIRED_FIELDS = ["fixture_id", "schema_version", "message_type", "payload"]
+MAX_SIG_DEPTH = 3
 
 
 def utc_now() -> str:
@@ -42,6 +43,11 @@ def normalize_behavior(v: str) -> str:
         "rechazar": "reject",
     }
     return mapping.get(str(v).strip().lower(), "degrade")
+
+
+def normalize_message_type(v: str) -> str:
+    s = str(v).strip().lower()
+    return "_".join(s.split()) if s else "unknown"
 
 
 def safe_parser_route(v: str) -> str:
@@ -67,6 +73,182 @@ def write_json(path: Path, data: Any) -> None:
 
 def iter_json_files(root: Path) -> list[Path]:
     return sorted(root.rglob("*.json"))
+
+
+def _len_bucket(n: int) -> str:
+    if n <= 0:
+        return "0"
+    if n <= 8:
+        return "1-8"
+    if n <= 32:
+        return "9-32"
+    if n <= 128:
+        return "33-128"
+    return "129+"
+
+
+def _value_signature(v: Any, depth: int = 0) -> Any:
+    if depth >= MAX_SIG_DEPTH:
+        return {"t": "cutoff"}
+
+    if v is None:
+        return {"t": "null"}
+    if isinstance(v, bool):
+        return {"t": "bool", "v": v}
+    if isinstance(v, (int, float)):
+        fv = float(v)
+        av = abs(fv)
+        if av == 0:
+            bucket = "0"
+        elif av <= 10:
+            bucket = "tiny"
+        elif av <= 100:
+            bucket = "small"
+        elif av <= 1000:
+            bucket = "medium"
+        else:
+            bucket = "large"
+        return {"t": "num", "bucket": bucket, "sign": "neg" if fv < 0 else "pos"}
+    if isinstance(v, str):
+        normalized = " ".join(v.strip().lower().split())
+        return {"t": "str", "len": _len_bucket(len(normalized)), "prefix": normalized[:40]}
+    if isinstance(v, list):
+        return {
+            "t": "list",
+            "len": _len_bucket(len(v)),
+            "sample": [_value_signature(i, depth + 1) for i in v[:3]],
+        }
+    if isinstance(v, dict):
+        keys = sorted(str(k) for k in v.keys())
+        return {
+            "t": "dict",
+            "keys": keys,
+            "values": {k: _value_signature(v.get(k), depth + 1) for k in keys[:10]},
+        }
+    return {"t": type(v).__name__}
+
+
+def _value_quality(v: Any, depth: int = 0) -> float:
+    if depth >= MAX_SIG_DEPTH:
+        return 0.0
+    if v is None:
+        return 0.2
+    if isinstance(v, bool):
+        return 0.5
+    if isinstance(v, (int, float)):
+        return 0.8
+    if isinstance(v, str):
+        normalized = " ".join(v.strip().split())
+        return min(4.0, max(0.5, len(normalized) / 24.0))
+    if isinstance(v, list):
+        base = min(3.0, len(v) * 0.4)
+        return base + sum(_value_quality(i, depth + 1) for i in v[:5])
+    if isinstance(v, dict):
+        keys = sorted(v.keys())
+        base = min(4.0, len(keys) * 0.8)
+        return base + sum(_value_quality(v[k], depth + 1) for k in keys[:10])
+    return 0.1
+
+
+def fixture_quality_score(data: dict[str, Any]) -> float:
+    payload = data.get("payload", {})
+    score = _value_quality(payload)
+    if normalize_behavior(data.get("expected_behavior", "degrade")) == "reject":
+        score += 0.5
+    if safe_parser_route(data.get("schema_version", "actual_v2")) == "legacy_v1":
+        score += 0.3
+    return round(score, 3)
+
+
+def low_value_signature(data: dict[str, Any]) -> str:
+    basis = {
+        "schema": safe_parser_route(data.get("schema_version", "actual_v2")),
+        "message_type": normalize_message_type(data.get("message_type", "unknown")),
+        "expected_behavior": normalize_behavior(data.get("expected_behavior", "degrade")),
+        "payload_profile": _value_signature(data.get("payload", {})),
+    }
+    return stable_hash(basis)
+
+
+def _template_pack_mensajeria() -> list[dict[str, Any]]:
+    return [
+        {
+            "fixture_id": "FX-SEED-TXT-001",
+            "schema_version": "actual_v2",
+            "message_type": "texto",
+            "payload": {"subject": "Estado servicio", "body": "Hola equipo"},
+            "expected_behavior": "aceptar",
+        },
+        {
+            "fixture_id": "FX-SEED-TXT-002",
+            "schema_version": "actual_v2",
+            "message_type": "texto",
+            "payload": {"subject": "estado    servicio", "body": "  hola   equipo  "},
+            "expected_behavior": "aceptar",
+        },
+        {
+            "fixture_id": "FX-SEED-LINK-001",
+            "schema_version": "actual_v2",
+            "message_type": "enlace",
+            "payload": {"url": "https://example.invalid/help", "label": "Ayuda interna"},
+            "expected_behavior": "degradar",
+        },
+        {
+            "fixture_id": "FX-SEED-LINK-002",
+            "schema_version": "actual_v2",
+            "message_type": "enlace",
+            "payload": {"url": "https://example.invalid/help?utm=seed", "label": "ayuda interna"},
+            "expected_behavior": "degradar",
+        },
+        {
+            "fixture_id": "FX-SEED-MEDIA-001",
+            "schema_version": "actual_v2",
+            "message_type": "adjunto_medio",
+            "payload": {"media_type": "image/jpeg", "bytes": 2048, "name": "foto-01.jpg"},
+            "expected_behavior": "degradar",
+        },
+        {
+            "fixture_id": "FX-SEED-MEDIA-002",
+            "schema_version": "actual_v2",
+            "message_type": "adjunto_medio",
+            "payload": {"media_type": "image/jpeg", "bytes": 2052, "name": "FOTO-01.jpg"},
+            "expected_behavior": "degradar",
+        },
+        {
+            "fixture_id": "FX-SEED-REA-001",
+            "schema_version": "actual_v2",
+            "message_type": "reaccion",
+            "payload": {"emoji": "👍", "target_id": "msg-100"},
+            "expected_behavior": "aceptar",
+        },
+        {
+            "fixture_id": "FX-SEED-REA-002",
+            "schema_version": "actual_v2",
+            "message_type": "reaccion",
+            "payload": {"emoji": " 👍 ", "target_id": "msg-100"},
+            "expected_behavior": "aceptar",
+        },
+        {
+            "fixture_id": "FX-SEED-GRP-001",
+            "schema_version": "actual_v2",
+            "message_type": "grupo_evento",
+            "payload": {"event": "member_add", "member_id": "u-200", "role": "guest"},
+            "expected_behavior": "rechazar",
+        },
+        {
+            "fixture_id": "FX-SEED-CTRL-LEG-001",
+            "schema_version": "legacy_v1",
+            "message_type": "control",
+            "payload": {"opcode": "PING", "seq": 7},
+            "expected_behavior": "aceptar",
+        },
+    ]
+
+
+def build_template_pack(name: str) -> list[dict[str, Any]]:
+    if name == "mensajeria":
+        return _template_pack_mensajeria()
+    return []
 
 
 @dataclass
@@ -218,17 +400,20 @@ def cmd_coverage(summary_json: Path) -> int:
     return 0
 
 
-def cmd_seed_corpus(fixtures: Path, out_dir: Path) -> int:
+def cmd_seed_corpus(fixtures: Path, out_dir: Path, template_pack: str = "none") -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     raw_dir = out_dir / "raw"
     idx_csv = out_dir / "index_semillas.csv"
     rows: list[dict[str, str]] = []
+    by_schema: dict[str, int] = defaultdict(int)
+    by_message_type: dict[str, int] = defaultdict(int)
+    by_group: dict[str, int] = defaultdict(int)
 
     for p in iter_json_files(fixtures):
         data = json.loads(p.read_text(encoding="utf-8"))
         fixture_id = str(data.get("fixture_id", p.stem))
         schema = safe_parser_route(data.get("schema_version", "actual_v2"))
-        mtype = str(data.get("message_type", "unknown"))
+        mtype = normalize_message_type(data.get("message_type", "unknown"))
         group = f"{schema}__{mtype}"
 
         dst = raw_dir / group / p.name
@@ -244,11 +429,51 @@ def cmd_seed_corpus(fixtures: Path, out_dir: Path) -> int:
                 "sha256": stable_hash(data),
             }
         )
+        by_schema[schema] += 1
+        by_message_type[mtype] += 1
+        by_group[group] += 1
+
+    generated = build_template_pack(template_pack)
+    for data in generated:
+        fixture_id = str(data.get("fixture_id", "fixture_sintetico"))
+        schema = safe_parser_route(data.get("schema_version", "actual_v2"))
+        mtype = normalize_message_type(data.get("message_type", "unknown"))
+        group = f"{schema}__{mtype}"
+
+        out_name = f"{fixture_id}.json"
+        dst = raw_dir / group / out_name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+        rows.append(
+            {
+                "fixture_id": fixture_id,
+                "group": group,
+                "source": f"template_pack:{template_pack}",
+                "target": str(dst.as_posix()),
+                "sha256": stable_hash(data),
+            }
+        )
+        by_schema[schema] += 1
+        by_message_type[mtype] += 1
+        by_group[group] += 1
 
     with idx_csv.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=["fixture_id", "group", "source", "target", "sha256"])
         writer.writeheader()
         writer.writerows(rows)
+
+    write_json(
+        out_dir / "clasificacion_semillas.json",
+        {
+            "total_semillas": len(rows),
+            "template_pack": template_pack,
+            "generated_semillas": len(generated),
+            "distribucion_schema": dict(sorted(by_schema.items())),
+            "distribucion_message_type": dict(sorted(by_message_type.items())),
+            "distribucion_group": dict(sorted(by_group.items())),
+        },
+    )
 
     print(f"OK: corpus semilla construido en {out_dir}")
     return 0
@@ -263,29 +488,90 @@ def cmd_normalize_corpus(corpus_dir: Path, out_dir: Path) -> int:
     normalized = out_dir / "normalized"
     normalized.mkdir(parents=True, exist_ok=True)
 
-    seen: dict[str, Path] = {}
-    duplicates = 0
-    copied = 0
+    seen_exact: dict[str, Path] = {}
+    best_by_low_sig: dict[str, dict[str, Any]] = {}
+    duplicates_exact = 0
+    duplicates_low_value = 0
+    total_input = 0
+    by_type_before: dict[str, int] = defaultdict(int)
+    low_value_samples: list[dict[str, Any]] = []
 
     for p in iter_json_files(raw):
         data = json.loads(p.read_text(encoding="utf-8"))
-        h = stable_hash(data)
-        if h in seen:
-            duplicates += 1
+        total_input += 1
+        mtype = normalize_message_type(data.get("message_type", "unknown"))
+        by_type_before[mtype] += 1
+
+        strict_hash = stable_hash(data)
+        if strict_hash in seen_exact:
+            duplicates_exact += 1
+            continue
+        seen_exact[strict_hash] = p
+
+        low_sig = low_value_signature(data)
+        candidate = {
+            "source_path": p,
+            "data": data,
+            "group": p.parent.name,
+            "quality": fixture_quality_score(data),
+            "fixture_id": str(data.get("fixture_id", p.stem)),
+            "strict_hash": strict_hash,
+            "low_sig": low_sig,
+        }
+
+        prev = best_by_low_sig.get(low_sig)
+        if prev is None:
+            best_by_low_sig[low_sig] = candidate
             continue
 
-        rel_group = p.parent.name
-        dst = normalized / rel_group / p.name
+        if candidate["quality"] > prev["quality"]:
+            duplicates_low_value += 1
+            if len(low_value_samples) < 10:
+                low_value_samples.append(
+                    {
+                        "tipo": "low_value_reemplazo",
+                        "firma": low_sig[:16],
+                        "fixture_descartado": prev["fixture_id"],
+                        "fixture_conservado": candidate["fixture_id"],
+                    }
+                )
+            best_by_low_sig[low_sig] = candidate
+        else:
+            duplicates_low_value += 1
+            if len(low_value_samples) < 10:
+                low_value_samples.append(
+                    {
+                        "tipo": "low_value_descarte",
+                        "firma": low_sig[:16],
+                        "fixture_descartado": candidate["fixture_id"],
+                        "fixture_conservado": prev["fixture_id"],
+                    }
+                )
+
+    by_type_after: dict[str, int] = defaultdict(int)
+    copied = 0
+    for low_sig, item in sorted(best_by_low_sig.items(), key=lambda kv: (kv[1]["group"], kv[1]["fixture_id"], kv[0])):
+        rel_group = item["group"]
+        src = item["source_path"]
+        data = item["data"]
+        mtype = normalize_message_type(data.get("message_type", "unknown"))
+        by_type_after[mtype] += 1
+
+        dst = normalized / rel_group / src.name
         dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(p, dst)
-        seen[h] = p
+        shutil.copy2(src, dst)
         copied += 1
 
     report = {
         "source": str(raw.as_posix()),
         "normalized_dir": str(normalized.as_posix()),
+        "total_input": total_input,
         "total_unique": copied,
-        "duplicates_removed": duplicates,
+        "duplicates_removed_exact": duplicates_exact,
+        "duplicates_removed_low_value": duplicates_low_value,
+        "distribucion_before_message_type": dict(sorted(by_type_before.items())),
+        "distribucion_after_message_type": dict(sorted(by_type_after.items())),
+        "muestras_low_value": low_value_samples,
     }
     write_json(out_dir / "normalizacion_reporte.json", report)
     print(f"OK: corpus normalizado en {normalized}")
@@ -580,6 +866,7 @@ def build_parser() -> argparse.ArgumentParser:
     seed = sp.add_parser("seed-corpus")
     seed.add_argument("--fixtures", required=True)
     seed.add_argument("--out", required=True)
+    seed.add_argument("--template-pack", default="none", choices=["none", "mensajeria"])
 
     norm = sp.add_parser("normalize-corpus")
     norm.add_argument("--corpus", required=True)
@@ -631,7 +918,7 @@ def main() -> int:
     if cmd == "coverage":
         return cmd_coverage(Path(args.summary))
     if cmd == "seed-corpus":
-        return cmd_seed_corpus(Path(args.fixtures), Path(args.out))
+        return cmd_seed_corpus(Path(args.fixtures), Path(args.out), args.template_pack)
     if cmd == "normalize-corpus":
         return cmd_normalize_corpus(Path(args.corpus), Path(args.out))
     if cmd == "mutate-struct":

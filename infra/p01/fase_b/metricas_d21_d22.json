@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-03-27T14:25:39.421678Z",
+  "contexto": {
+    "fase": "Fase B",
+    "seccion": "Seccion 1 (D19-D34)",
+    "tramo": "D21-D22"
+  },
+  "d21": {
+    "total_semillas": 15,
+    "generated_semillas": 10,
+    "template_pack": "mensajeria",
+    "distribucion_schema": {
+      "actual_v2": 11,
+      "legacy_v1": 4
+    },
+    "distribucion_message_type": {
+      "adjunto_medio": 2,
+      "control": 1,
+      "enlace": 2,
+      "grupo_evento": 1,
+      "reaccion": 2,
+      "texto": 7
+    },
+    "distribucion_group": {
+      "actual_v2__adjunto_medio": 2,
+      "actual_v2__enlace": 2,
+      "actual_v2__grupo_evento": 1,
+      "actual_v2__reaccion": 2,
+      "actual_v2__texto": 4,
+      "legacy_v1__control": 1,
+      "legacy_v1__texto": 3
+    }
+  },
+  "d22": {
+    "total_input": 15,
+    "total_unique": 12,
+    "duplicates_removed_exact": 0,
+    "duplicates_removed_low_value": 3,
+    "reduction_pct": 20.0,
+    "distribucion_before_message_type": {
+      "adjunto_medio": 2,
+      "control": 1,
+      "enlace": 2,
+      "grupo_evento": 1,
+      "reaccion": 2,
+      "texto": 7
+    },
+    "distribucion_after_message_type": {
+      "adjunto_medio": 1,
+      "control": 1,
+      "enlace": 2,
+      "grupo_evento": 1,
+      "reaccion": 1,
+      "texto": 6
+    }
+  },
+  "status": {
+    "clasificacion_multi_tipo": true,
+    "deduplicacion_activa": true
+  }
+}
