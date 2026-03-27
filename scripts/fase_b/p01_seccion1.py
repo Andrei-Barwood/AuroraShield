@@ -16,6 +16,7 @@ import csv
 import hashlib
 import json
 import random
+import shlex
 import shutil
 import sys
 from collections import defaultdict
@@ -1088,16 +1089,76 @@ def cmd_repro(fixture: Path, out_file: Path) -> int:
     if not fixture.exists():
         print(f"No existe fixture: {fixture}")
         return 1
+
     data = json.loads(fixture.read_text(encoding="utf-8"))
+    fixture_id = str(data.get("fixture_id", fixture.stem))
+    fixture_token = safe_file_token(fixture_id)
+
+    context_tag = "default"
+    if len(fixture.parents) >= 2:
+        context_tag = safe_file_token(fixture.parents[1].name)
+
+    expected = normalize_behavior(data.get("expected_behavior", "degrade"))
+    schema_version = str(data.get("schema_version", "actual_v2"))
+
+    isolated_input_dir = Path("artifacts/p01/fase_b/d29/repro_input") / context_tag / fixture_token
+    harness_out = Path("artifacts/p01/fase_b/d29/repro_runs") / context_tag / fixture_token
+    run_id = f"d29-{context_tag}-{fixture_token}"
+
+    fixture_q = shlex.quote(fixture.as_posix())
+    isolated_q = shlex.quote(isolated_input_dir.as_posix())
+    harness_q = shlex.quote(harness_out.as_posix())
+    run_id_q = shlex.quote(run_id)
+
+    prepare_cmd = f"mkdir -p {isolated_q} && cp {fixture_q} {isolated_q}/"
+    run_cmd = (
+        "python3 scripts/fase_b/p01_seccion1.py harness "
+        f"--fixtures {isolated_q} --out {harness_q} --run-id {run_id_q}"
+    )
+
+    repro_id = stable_hash(
+        {
+            "fixture_id": fixture_id,
+            "schema_version": schema_version,
+            "expected_behavior": expected,
+            "context_tag": context_tag,
+            "run_id": run_id,
+        }
+    )[:16]
+
     out = {
+        "format_version": "d29-repro-v1",
         "generated_at": utc_now(),
-        "fixture_path": str(fixture.as_posix()),
-        "fixture_id": data.get("fixture_id", fixture.stem),
-        "schema_version": data.get("schema_version", "actual_v2"),
-        "expected_behavior": normalize_behavior(data.get("expected_behavior", "degrade")),
-        "command": f"python3 scripts/fase_b/p01_seccion1.py harness --fixtures {fixture.parent.as_posix()} --out artifacts/p01/fase_b/repro",
-        "output_format": "jsonl+summary",
+        "repro_id": repro_id,
+        "fixture": {
+            "fixture_path": str(fixture.as_posix()),
+            "fixture_id": fixture_id,
+            "schema_version": schema_version,
+            "expected_behavior": expected,
+        },
+        "execution": {
+            "prepare_command": prepare_cmd,
+            "run_command": run_cmd,
+            "run_id": run_id,
+            "isolated_input_dir": str(isolated_input_dir.as_posix()),
+        },
+        "output_contract": {
+            "format": "jsonl+summary",
+            "harness_out": str(harness_out.as_posix()),
+            "required_files": ["events.jsonl", "failures.jsonl", "summary.json"],
+            "summary_required_fields": [
+                "run_id",
+                "fixtures_total",
+                "events_total",
+                "accepts",
+                "degrades",
+                "rejects",
+                "failures_total",
+                "coverage_base_pct",
+            ],
+        },
     }
+
     write_json(out_file, out)
     print(f"OK: script de repro estandarizado en {out_file}")
     return 0

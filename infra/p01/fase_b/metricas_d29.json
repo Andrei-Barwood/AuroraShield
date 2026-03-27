@@ -1,0 +1,83 @@
+{
+  "generated_at": "2026-03-27T15:31:48.717612Z",
+  "contexto": {
+    "fase": "Fase B",
+    "seccion": "Seccion 1 (D19-D34)",
+    "tramo": "D29"
+  },
+  "d29": {
+    "specs": {
+      "total_specs": 36,
+      "valid_top": 36,
+      "valid_top_pct": 100.0,
+      "valid_contract": 36,
+      "valid_contract_pct": 100.0,
+      "format_ok": 36,
+      "format_ok_pct": 100.0,
+      "unique_repro_ids": 36,
+      "unique_repro_ids_pct": 100.0,
+      "by_context": {
+        "estructural": 12,
+        "semantico": 12,
+        "combinado": 12
+      }
+    },
+    "smoke": {
+      "exists": true,
+      "contexts_total": 3,
+      "contexts_ok": 3,
+      "contexts_ok_pct": 100.0,
+      "by_context": {
+        "estructural": {
+          "ok": true,
+          "spec_path": "/Volumes/The_DollMaker/Snocomm/Apple Computer, Inc/2026/repo/artifacts/p01/fase_b/d29/specs/estructural/FX-BASE-001__min__repro.json",
+          "repro_id": "6d649f8c2718042a",
+          "prepare_returncode": 0,
+          "run_returncode": 0,
+          "missing_required_files": [],
+          "prepare_stderr_tail": "",
+          "run_stderr_tail": ""
+        },
+        "semantico": {
+          "ok": true,
+          "spec_path": "/Volumes/The_DollMaker/Snocomm/Apple Computer, Inc/2026/repo/artifacts/p01/fase_b/d29/specs/semantico/FX-BASE-001__min__repro.json",
+          "repro_id": "c035b112e5e10eec",
+          "prepare_returncode": 0,
+          "run_returncode": 0,
+          "missing_required_files": [],
+          "prepare_stderr_tail": "",
+          "run_stderr_tail": ""
+        },
+        "combinado": {
+          "ok": true,
+          "spec_path": "/Volumes/The_DollMaker/Snocomm/Apple Computer, Inc/2026/repo/artifacts/p01/fase_b/d29/specs/combinado/FX-BASE-001__min__repro.json",
+          "repro_id": "7a004038f53099d6",
+          "prepare_returncode": 0,
+          "run_returncode": 0,
+          "missing_required_files": [],
+          "prepare_stderr_tail": "",
+          "run_stderr_tail": ""
+        }
+      }
+    },
+    "criterios_validacion": {
+      "total_specs_min": 30,
+      "valid_contract_pct_min": 100.0,
+      "unique_repro_ids_pct_min": 100.0,
+      "contexts_required": [
+        "estructural",
+        "semantico",
+        "combinado"
+      ],
+      "smoke_contexts_ok_pct_min": 100.0
+    },
+    "estado": {
+      "scripts_repro_generados": true,
+      "salida_repro_estandarizada": true,
+      "smoke_repro_ok": true
+    }
+  },
+  "status": {
+    "d29_cumplido": true
+  }
+}

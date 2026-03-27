@@ -18,11 +18,12 @@
 - [x] D26 completado (captura automática de fallas + artefactos por corrida).
 - [x] D27 completado (deduplicación por firma + validación de clustering).
 - [x] D28 completado (minimización automática + verificación de reproducibilidad).
+- [x] D29 completado (script de repro automático + salida estandarizada).
 
 ## Ejecución planificada
 
 - [x] D19-D24 ejecutados con artefactos.
-- [ ] D25-D29 ejecutados con artefactos.
+- [x] D25-D29 ejecutados con artefactos.
 - [ ] D30 campaña larga #1 completada.
 - [ ] D31-D32 triage e hipótesis preliminares completados.
 - [ ] D33 campaña larga #2 completada.
