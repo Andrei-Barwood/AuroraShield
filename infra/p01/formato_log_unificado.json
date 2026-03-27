@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "P01 Unified Log Event",
+  "type": "object",
+  "required": [
+    "timestamp_utc",
+    "run_id",
+    "stage",
+    "event_type",
+    "reason_code",
+    "severity",
+    "fixture_id",
+    "parser_route",
+    "action",
+    "sanitized",
+    "details_hash"
+  ],
+  "properties": {
+    "timestamp_utc": { "type": "string" },
+    "run_id": { "type": "string" },
+    "stage": { "type": "string" },
+    "event_type": { "type": "string" },
+    "reason_code": { "type": "string" },
+    "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    "fixture_id": { "type": "string" },
+    "parser_route": { "type": "string", "enum": ["legacy_v1", "actual_v2"] },
+    "action": { "type": "string", "enum": ["accept", "degrade", "reject"] },
+    "sanitized": { "type": "boolean" },
+    "details_hash": { "type": "string" }
+  },
+  "additionalProperties": true
+}
