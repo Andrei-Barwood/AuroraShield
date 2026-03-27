@@ -6,8 +6,8 @@ Repositorio de trabajo `defensive-by-design` orientado al ecosistema Apple.
 
 - Nombre del proyecto: `AuroraShield`
 - Proyecto activo: `P01 - No-click network attack (mensajería) hasta user space y kernel`
-- Estado de fase: `Fase A cerrada` / `Fase B lista para ejecución`
-- Último hito completado: `Tramo E (Día 17 y Día 18)`
+- Estado de fase: `Fase A cerrada` / `Fase B en ejecución`
+- Sección activa de Fase B: `Sección 1 (D19-D34) preparada y validada`
 - Baseline de referencia: `baseline-20260327T135640Z`
 
 ## Objetivo del repositorio
@@ -32,15 +32,19 @@ Construir mitigaciones y modelos de prevención reproducibles sin publicar mater
 - `docs/p01/fase_a/tramo_e_d17_d18_checklist.md`: checklist de cierre del Tramo E.
 - `docs/p01/fase_a/revision_puerta_fase_a.md`: revisión de puerta para inicio de Fase B.
 - `docs/p01/fase_b/backlog_tecnico_inicial.md`: backlog técnico inicial de Fase B.
+- `docs/p01/fase_b/seccion_1_d19_d34.md`: guía operativa de Sección 1 de Fase B.
+- `docs/p01/fase_b/seccion_1_d19_d34_checklist.md`: checklist de ejecución de Sección 1.
 - `infra/p01/matriz_multiversion.csv`: baseline multi-versión.
 - `infra/p01/matriz_compatibilidad.csv`: baseline de compatibilidad de fixtures.
 - `infra/p01/formato_log_unificado.json`: contrato de telemetría/log unificado.
+- `infra/p01/fase_b/presupuesto_campanas.json`: presupuesto base para campañas largas.
 - `fixtures/p01/`: fixtures sintéticos base y por escenario.
 - `scripts/bootstrap_p01_entorno.sh`: bootstrap idempotente del entorno aislado.
 - `scripts/p01_replay_deterministico.py`: replay determinístico de fixtures.
 - `scripts/validar_logs_unificados_p01.py`: validador de formato de logs JSONL.
 - `scripts/verificar_aislamiento_min_priv_p01.sh`: verificador de aislamiento y mínimo privilegio.
 - `scripts/ejecutar_baseline_p01.sh`: ejecución baseline D17 sin mutaciones.
+- `scripts/fase_b/p01_seccion1.py`: CLI unificada para D19-D34 (harness, corpus, mutaciones, campañas, dedup y triage).
 - `docs/p01/fase_a/scorecard_semanal_template.md`: plantilla semanal para semáforos y decisiones.
 - `metrics/p01/runs_template.csv`: plantilla CSV para registrar corridas y cálculo de KPIs.
 - `metrics/p01/runs.csv`: registro real de corridas baseline.

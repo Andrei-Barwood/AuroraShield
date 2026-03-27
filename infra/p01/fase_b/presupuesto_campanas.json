@@ -1,0 +1,12 @@
+{
+  "campana_1": {
+    "max_cases": 500,
+    "max_minutes": 60,
+    "focus": "discovery_inicial"
+  },
+  "campana_2": {
+    "max_cases": 800,
+    "max_minutes": 90,
+    "focus": "validacion_clusters_nuevos"
+  }
+}
