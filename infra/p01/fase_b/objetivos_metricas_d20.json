@@ -1,0 +1,32 @@
+{
+  "contexto": {
+    "fase": "Fase B",
+    "seccion": "Seccion 1 (D19-D34)",
+    "origen": "artifacts/p01/fase_b/d19_d20/batch_harness/batch_resumen.json"
+  },
+  "baseline_d20": {
+    "coverage_base_pct_actual": 18.75,
+    "reject_rate_pct_actual": 40.0,
+    "total_runs_batch": 4,
+    "total_fixtures_batch": 10
+  },
+  "objetivos": {
+    "d24": {
+      "entrypoint_coverage_base_pct_min": 60.0,
+      "reject_rate_pct_rango": [
+        20.0,
+        70.0
+      ],
+      "artifacts_por_corrida_min": 3
+    },
+    "d34": {
+      "entrypoint_coverage_base_pct_min": 95.0,
+      "dedup_precision_pct_min": 90.0,
+      "repro_success_rate_pct_min": 95.0
+    }
+  },
+  "notas": [
+    "Los objetivos se ajustan en D34 según evidencia de campañas largas.",
+    "RejectRate fuera del rango esperado requiere revisar corpus y reglas de normalizacion."
+  ]
+}

@@ -6,6 +6,11 @@
 - [x] Presupuesto de campañas definido (`infra/p01/fase_b/presupuesto_campanas.json`).
 - [x] Guía operativa de sección creada.
 
+## Progreso actual
+
+- [x] D19 completado (harness inicial + ejecución batch).
+- [x] D20 completado (medición de cobertura base + objetivos definidos).
+
 ## Ejecución planificada
 
 - [ ] D19-D24 ejecutados con artefactos.
