@@ -1,9 +1,10 @@
-# Snocomm Defensive Research Lab
+# AuroraShield
 
-Repositorio de trabajo para proyectos `defensive-by-design` orientados al ecosistema Apple.
+Repositorio de trabajo `defensive-by-design` orientado al ecosistema Apple.
 
 ## Estado actual
 
+- Nombre del proyecto: `AuroraShield`
 - Proyecto activo: `P01 - No-click network attack (mensajería) hasta user space y kernel`
 - Fase activa: `Fase A`
 - Bloque activo: `Bloque 1 (alcance técnico y legal)`
