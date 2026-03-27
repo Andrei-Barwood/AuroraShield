@@ -1,0 +1,147 @@
+{
+  "generated_at": "2026-03-27T14:51:34.852684Z",
+  "contexto": {
+    "fase": "Fase B",
+    "seccion": "Seccion 1 (D19-D34)",
+    "tramo": "D27-D28"
+  },
+  "d27": {
+    "clusters": {
+      "by_context": {
+        "estructural": {
+          "exists": true,
+          "total_failures": 48,
+          "total_clusters": 4,
+          "top_cluster_count": 16,
+          "cluster_reduction_pct": 91.67
+        },
+        "semantico": {
+          "exists": true,
+          "total_failures": 24,
+          "total_clusters": 2,
+          "top_cluster_count": 20,
+          "cluster_reduction_pct": 91.67
+        },
+        "combinado": {
+          "exists": true,
+          "total_failures": 72,
+          "total_clusters": 6,
+          "top_cluster_count": 20,
+          "cluster_reduction_pct": 91.67
+        }
+      },
+      "aggregate": {
+        "total_failures_sum": 144,
+        "total_clusters_sum": 12,
+        "combined_reduction_pct": 91.67
+      }
+    },
+    "criterios_validacion": {
+      "combined_cluster_reduction_pct_min": 70.0,
+      "contexts_required": [
+        "estructural",
+        "semantico",
+        "combinado"
+      ]
+    },
+    "estado": {
+      "deduplicacion_por_firma_validada": true
+    }
+  },
+  "d28": {
+    "minimizacion_repro": {
+      "by_context": {
+        "estructural": {
+          "minimized_total": 12,
+          "missing_fixtures_count": 0,
+          "repro_run1": {
+            "exists": true,
+            "fixtures_total": 12,
+            "accepts": 5,
+            "degrades": 4,
+            "rejects": 3,
+            "failures_total": 3,
+            "coverage_base_pct": 87.5
+          },
+          "repro_run2": {
+            "exists": true,
+            "fixtures_total": 12,
+            "accepts": 5,
+            "degrades": 4,
+            "rejects": 3,
+            "failures_total": 3,
+            "coverage_base_pct": 87.5
+          },
+          "deterministic": true
+        },
+        "semantico": {
+          "minimized_total": 12,
+          "missing_fixtures_count": 0,
+          "repro_run1": {
+            "exists": true,
+            "fixtures_total": 12,
+            "accepts": 5,
+            "degrades": 4,
+            "rejects": 3,
+            "failures_total": 3,
+            "coverage_base_pct": 87.5
+          },
+          "repro_run2": {
+            "exists": true,
+            "fixtures_total": 12,
+            "accepts": 5,
+            "degrades": 4,
+            "rejects": 3,
+            "failures_total": 3,
+            "coverage_base_pct": 87.5
+          },
+          "deterministic": true
+        },
+        "combinado": {
+          "minimized_total": 12,
+          "missing_fixtures_count": 0,
+          "repro_run1": {
+            "exists": true,
+            "fixtures_total": 12,
+            "accepts": 5,
+            "degrades": 4,
+            "rejects": 3,
+            "failures_total": 3,
+            "coverage_base_pct": 87.5
+          },
+          "repro_run2": {
+            "exists": true,
+            "fixtures_total": 12,
+            "accepts": 5,
+            "degrades": 4,
+            "rejects": 3,
+            "failures_total": 3,
+            "coverage_base_pct": 87.5
+          },
+          "deterministic": true
+        }
+      },
+      "aggregate": {
+        "contexts_total": 3,
+        "contexts_with_output": 3,
+        "deterministic_ok": 3,
+        "repro_success_pct": 100.0,
+        "total_minimized": 36
+      }
+    },
+    "criterios_validacion": {
+      "repro_success_pct_min": 95.0,
+      "contexts_with_output_equals_total": true,
+      "total_minimized_min": 1
+    },
+    "estado": {
+      "minimizacion_automatica_activa": true,
+      "reproducibilidad_verificada": true
+    }
+  },
+  "status": {
+    "d27_cumplido": true,
+    "d28_cumplido": true,
+    "d27_d28_cumplido": true
+  }
+}

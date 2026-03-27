@@ -16,6 +16,8 @@
 - [x] D24 completado (mutadores semánticos + validación de mutaciones inválidas útiles).
 - [x] D25 completado (scheduler de campañas + presupuesto por campaña).
 - [x] D26 completado (captura automática de fallas + artefactos por corrida).
+- [x] D27 completado (deduplicación por firma + validación de clustering).
+- [x] D28 completado (minimización automática + verificación de reproducibilidad).
 
 ## Ejecución planificada
 

@@ -1017,34 +1017,69 @@ def cmd_minimize(failures_jsonl: Path, fixtures_root: Path, out_dir: Path) -> in
     for p in iter_json_files(fixtures_root):
         try:
             data = json.loads(p.read_text(encoding="utf-8"))
-            fixture_index[str(data.get("fixture_id", p.stem))] = p
+            fid = str(data.get("fixture_id", p.stem))
+            if fid not in fixture_index:
+                fixture_index[fid] = p
         except Exception:
             continue
 
-    out_dir.mkdir(parents=True, exist_ok=True)
-    report = []
-
+    by_fixture: dict[str, int] = defaultdict(int)
     for r in rows:
-        fid = str(r.get("fixture_id", ""))
+        fid = str(r.get("fixture_id", "")).strip()
+        if fid:
+            by_fixture[fid] += 1
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fixtures_dir = out_dir / "fixtures"
+    fixtures_dir.mkdir(parents=True, exist_ok=True)
+
+    report = []
+    missing_fixtures: list[str] = []
+
+    for fid in sorted(by_fixture.keys()):
         src = fixture_index.get(fid)
         if not src:
+            missing_fixtures.append(fid)
             continue
 
         data = json.loads(src.read_text(encoding="utf-8"))
+        payload = data.get("payload", {})
+        if not isinstance(payload, dict):
+            payload = {}
+
         minimal = {
             "fixture_id": data.get("fixture_id", fid),
             "schema_version": data.get("schema_version", "actual_v2"),
             "message_type": data.get("message_type", "texto"),
-            "payload": data.get("payload", {}),
+            "payload": payload,
             "expected_behavior": data.get("expected_behavior", "rechazar"),
+            "_failure_count_source": by_fixture.get(fid, 0),
             "_minimized_from": str(src.as_posix()),
         }
 
-        dst = out_dir / f"{fid}__min.json"
+        dst = fixtures_dir / f"{fid}__min.json"
         dst.write_text(json.dumps(minimal, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        report.append({"fixture_id": fid, "source": str(src.as_posix()), "minimized": str(dst.as_posix())})
+        report.append(
+            {
+                "fixture_id": fid,
+                "failure_count_source": by_fixture.get(fid, 0),
+                "source": str(src.as_posix()),
+                "minimized": str(dst.as_posix()),
+            }
+        )
 
-    write_json(out_dir / "reporte_minimizacion.json", {"total": len(report), "items": report})
+    write_json(
+        out_dir / "reporte_minimizacion.json",
+        {
+            "fixtures_dir": str(fixtures_dir.as_posix()),
+            "total_failures_input": len(rows),
+            "fixtures_with_failures": len(by_fixture),
+            "total": len(report),
+            "missing_fixtures_count": len(missing_fixtures),
+            "missing_fixtures_sample": missing_fixtures[:20],
+            "items": report,
+        },
+    )
     print(f"OK: minimización completada en {out_dir}")
     return 0
 

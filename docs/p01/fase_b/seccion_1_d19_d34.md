@@ -51,6 +51,7 @@ python3 scripts/fase_b/p01_seccion1.py plan-campaign --budget infra/p01/fase_b/p
 python3 scripts/fase_b/p01_seccion1.py capture-failures --events artifacts/p01/fase_b/seccion1/harness/events.jsonl --out artifacts/p01/fase_b/seccion1/fallas
 ./scripts/fase_b/ejecutar_d25_d26.sh
 python3 scripts/fase_b/p01_seccion1.py dedup-signatures --failures artifacts/p01/fase_b/seccion1/fallas/fallas.jsonl --out artifacts/p01/fase_b/seccion1/clusters.json
+./scripts/fase_b/ejecutar_d27_d28.sh
 python3 scripts/fase_b/p01_seccion1.py triage --clusters artifacts/p01/fase_b/seccion1/clusters.json --out artifacts/p01/fase_b/seccion1/triage_top.json
 ```
 
