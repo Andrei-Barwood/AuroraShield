@@ -1,0 +1,6 @@
+fixture_id,escenario_fixture,parser_ruta,comportamiento_esperado,riesgo,prioridad
+FX-BASE-001,actual_v2,actual_v2,aceptar,medio,P2
+FX-BASE-002,actual_v2,actual_v2,degradar,medio,P2
+FX-LEG-001,legacy_v1,legacy_v1,aceptar,alto,P1
+FX-LEG-002,legacy_v1,actual_v2,rechazar,alto,P0
+FX-CROSS-001,actual_v2,legacy_v1,rechazar,alto,P0

@@ -1,0 +1,14 @@
+{
+  "fixture_id": "FX-BASE-002",
+  "schema_version": "actual_v2",
+  "message_type": "texto",
+  "payload": {
+    "subject": "limite",
+    "body": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "constraints": {
+    "max_depth": 3,
+    "max_fields": 8
+  },
+  "expected_behavior": "degradar"
+}

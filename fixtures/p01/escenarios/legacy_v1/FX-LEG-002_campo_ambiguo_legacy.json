@@ -1,0 +1,10 @@
+{
+  "fixture_id": "FX-LEG-002",
+  "schema_version": "legacy_v1",
+  "message_type": "texto",
+  "payload": {
+    "title": 999,
+    "content": "campo ambiguo"
+  },
+  "expected_behavior": "rechazar"
+}

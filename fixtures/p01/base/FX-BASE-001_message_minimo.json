@@ -1,0 +1,10 @@
+{
+  "fixture_id": "FX-BASE-001",
+  "schema_version": "actual_v2",
+  "message_type": "texto",
+  "payload": {
+    "subject": "hola",
+    "body": "mensaje sintetico minimo"
+  },
+  "expected_behavior": "aceptar"
+}

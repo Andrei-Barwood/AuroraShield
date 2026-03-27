@@ -1,0 +1,4 @@
+version_id,os,build,parser_ruta,politica_rechazo_temprano,observabilidad_base,resultado_esperado_negativos,notes
+V1_LEGACY,macOS-legacy,build-legacy,legacy_v1,parcial,media,rechazo_controlado,"ruta legacy aislada"
+V2_ACTUAL,macOS-actual,build-actual,actual_v2,completa,alta,rechazo_temprano,"baseline objetivo"
+V3_CANDIDATO,macOS-candidato,build-candidate,actual_v2,completa,alta,rechazo_temprano,"pre-release validation"

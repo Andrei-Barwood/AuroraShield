@@ -1,0 +1,10 @@
+{
+  "fixture_id": "FX-CROSS-001",
+  "schema_version": "legacy_v1",
+  "message_type": "texto",
+  "payload": {
+    "title": "legacy_en_actual",
+    "content": "incompatible esperado"
+  },
+  "expected_behavior": "rechazar"
+}

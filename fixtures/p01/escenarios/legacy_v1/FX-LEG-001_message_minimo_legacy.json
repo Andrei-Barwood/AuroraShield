@@ -1,0 +1,10 @@
+{
+  "fixture_id": "FX-LEG-001",
+  "schema_version": "legacy_v1",
+  "message_type": "texto",
+  "payload": {
+    "title": "hola_legacy",
+    "content": "mensaje sintetico legacy"
+  },
+  "expected_behavior": "aceptar"
+}
